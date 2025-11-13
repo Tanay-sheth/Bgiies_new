@@ -1,70 +1,53 @@
-'use client'; // Required for usePathname
+'use client';
 
-import { Flex, Image, Text, Box } from "@chakra-ui/react";
-import Link from "next/link"; // Official Next.js Link
-import { usePathname } from "next/navigation"; // Hook to check current URL
+import React from 'react';
+import Link from 'next/link';
+import { Lexend } from 'next/font/google';
+import { usePathname } from 'next/navigation';
 
-// Helper Component to handle the "Active" underline logic
-const NavLinkItem = ({ href, text }) => {
+const lexend = Lexend({ subsets: ['latin'] });
+
+function NavLinkItem({ href, text }) {
   const pathname = usePathname();
-  // Check if the current path matches the link's href
   const isActive = pathname === href;
 
   return (
-    <Link href={href} passHref>
-      {/* We use a Box or Text to apply styles based on isActive */}
-      <Text
-        textDecoration={isActive ? "underline" : "none"}
-        textDecorationColor={isActive ? "black" : "transparent"} // Optional color control
-        textUnderlineOffset="4px"
-        fontSize="medium"
-        fontWeight={isActive ? "semibold" : "normal"}
-        _hover={{ textDecoration: "underline" }}
+    <Link href={href} legacyBehavior>
+      <a
+        className={`text-black font-semibold text-md hover:underline underline-offset-4 ${isActive ? 'underline' : ''}`}
+        style={{ textDecorationColor: isActive ? 'black' : 'transparent', fontFamily: lexend.style.fontFamily }}
       >
         {text}
-      </Text>
+      </a>
     </Link>
   );
-};
+}
 
-const Navbar = () => {
+export default function Navbar() {
   return (
-    <Flex
-      as="nav"
-      alignItems={"center"}
-      justifyContent={"space-between"}
-      w={"100%"} // Changed maxWidth to w="100%" for better layout
-      py={4} // Added padding Y for spacing
-      borderBottom="1px solid #e2e8f0" // Optional: adds a subtle bottom border
-    >
-      {/* Logo Section */}
-      <Flex alignItems={"center"} width={["50%", "30%"]} pl={"2rem"} gap={2}>
-        {/* Referencing image from /public folder directly */}
-        <Image src="/BGIIES-SMALL.png" alt="BGIIES Logo" boxSize={"50px"} objectFit="contain" />
-        <Text fontSize={"sm"} fontWeight={"700"} lineHeight="1.2">
-          BITS Goa Innovation, Incubation & Entrepreneurship Society
-        </Text>
-      </Flex>
+    <nav className="w-full border-b border-gray-200 py-4">
+      <div className="max-w-7xl mx-auto flex items-center justify-between px-6">
+        {/* Logo Section */}
+        <div className="flex items-center gap-3 w-1/2 md:w-1/3">
+          <img src="/BGIIES-SMALL.png" alt="BGIIES Logo" className="w-12 h-12 object-contain" />
+          <div className="leading-tight">
+            <p className="text-black font-bold text-sm" style={{ fontFamily: lexend.style.fontFamily }}>
+              BITS Goa Innovation, Incubation & Entrepreneurship Society
+            </p>
+          </div>
+        </div>
 
-      {/* Links Section */}
-      <Flex
-        justifyContent={"space-between"}
-        flex={2}
-        fontFamily={"Roboto"}
-        pl={"2rem"}
-        pr={"2rem"}
-        display={["none", "none", "flex"]} // Hide on mobile, show on desktop
-      >
-        <NavLinkItem href="/" text="Home" />
-        <NavLinkItem href="/facilities" text="Facilities" />
-        <NavLinkItem href="/incubation" text="Incubation" />
-        <NavLinkItem href="/cohort" text="Cohort" />
-        <NavLinkItem href="/gallery" text="Gallery" />
-        <NavLinkItem href="/about" text="BGIIES Till Now" />
-        <NavLinkItem href="/sisfs" text="SISFS" />
-      </Flex>
-    </Flex>
-    );
-};
-
-export default Navbar;
+        {/* Links Section - hidden on small screens */}
+        <div className="hidden lg:flex flex-1 justify-between px-6" style={{ fontFamily: lexend.style.fontFamily }}>
+          <NavLinkItem href="/" text="Home" />
+          <NavLinkItem href="/facilities" text="Facilities" />
+          <NavLinkItem href="/incubation" text="Incubation" />
+          <NavLinkItem href="/cohort" text="Cohort" />
+          <NavLinkItem href="/gallery" text="Gallery" />
+          <NavLinkItem href="/about" text="BGIIES Till Now" />
+          <NavLinkItem href="/sisfs" text="SISFS" />
+        </div>
+      </div>
+    </nav>
+  );
+}
