@@ -112,6 +112,11 @@ const page = () => {
       {/* Gradient Overlay */}
       <div className="absolute inset-0 bg-gradient-to-b from-cyan-400/40 to-blue-600/60 z-10" />
       
+      {/* BGIIES Element Bottom Left */}
+      <div className="absolute bottom-0 left-0 z-15">
+        <img src="/bgiieselement.png" alt="BGIIES Element" className="w-xs" />
+      </div>
+      
       {/* Text Content */}
       <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-4 sm:gap-6 px-4 sm:px-8">
         {/* Logo */}
@@ -126,6 +131,17 @@ const page = () => {
           <span className="border-b-4 border-lime-400 pb-1">Bui</span>
           lding the next generation of startups
         </h1>
+         <div className='items-center justify-center flex flex-col'>
+                        <p className=''>
+                            The BITS Goa Innovation Incubation Entrepreneurship Society (BIIES) fosters
+                        </p>
+                        <p className=''>
+                            innovation and entrepreneurship by providing mentorship, funding, and resources
+                        </p>
+                        <p className=''>
+                            to help turn ideas into successful ventures.
+                        </p>
+                    </div>
       </div>
     </div>
     <div className='justify-center items-center flex flex-col mt-25'>

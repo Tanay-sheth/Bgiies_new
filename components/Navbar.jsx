@@ -43,8 +43,9 @@ export default function Navbar() {
           <NavLinkItem href="/facilities" text="Facilities" />
           <NavLinkItem href="/incubation" text="Incubation" />
           <NavLinkItem href="/cohort" text="Cohort" />
+          <NavLinkItem href="/events" text="Events" />
           <NavLinkItem href="/gallery" text="Gallery" />
-          <NavLinkItem href="/about" text="BGIIES Till Now" />
+          <NavLinkItem href="/bgiies" text="BGIIES Till Now" />
           <NavLinkItem href="/sisfs" text="SISFS" />
         </div>
       </div>
