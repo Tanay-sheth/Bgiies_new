@@ -2,11 +2,17 @@
 
 import { Lexend } from 'next/font/google';
 const lexend = Lexend({ subsets: ['latin'] });
+import { useRouter } from 'next/navigation';
 
 import Image from 'next/image';
 
+
 const page = () => {
 
+  const router = useRouter();
+  const handleClick = () => {
+    router.push('/contact');
+  };
   const cards = [
     {
       img: '/titrator.jpg',
@@ -176,6 +182,7 @@ const page = () => {
                     <button
                       className="text-sm px-3 py-1.5 bg-indigo-700 text-white rounded-full shadow-sm hover:bg-indigo-800 focus:outline-none"
                       aria-label={`Book ${c.title}`}
+                      onClick={handleClick}
                     >
                       Book Now
                     </button>

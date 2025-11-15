@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { Quicksand } from 'next/font/google';
+import TestimonialCarousel from '../../components/TestimonialCarousel'; // <-- 1. ADD THIS IMPORT
 
 const quicksand_bold = Quicksand({
   weight: '700', // Bold weight
@@ -84,17 +85,24 @@ export default function IncubationPage() {
             ))}
           </div>
         </div>
-      </div>
-      {/* Testimonials Section */}
-      <div className="flex flex-col items-center mb-48">
-        <h2 className={`${quicksand_bold.className} text-3xl font-bold text-gray-800 mb-2`}>
-          Testimonials
-        </h2>
-        <div className="w-16 h-1 bg-yellow-500 -ml-40"></div>
-      </div>
-      <div className='text-black text-center mb-40'> Testimonial Animation placeholder</div> 
-      {/* TODO: Add testimonial cards+animation */}
+        {/* Testimonials Section */}
+        <div className="flex flex-col items-center mb-48">
+          <h2 className={`${quicksand_bold.className} text-3xl font-bold text-gray-800 mb-2`}>
+            Testimonials
+          </h2>
+          <div className="w-16 h-1 bg-yellow-500 -ml-40"></div>
+        </div>
+        
+        {/* --- THIS IS THE REPLACEMENT FOR THE TODO --- */}
+        <div className="mb-48">
+          <TestimonialCarousel
+            quicksand_bold={quicksand_bold}
+            quicksand_medium={quicksand_medium}
+          />
+        </div>
+        {/* --- END OF REPLACEMENT --- */}
 
+      </div>
     </div>
   );
 }
