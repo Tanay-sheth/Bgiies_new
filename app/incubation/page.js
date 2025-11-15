@@ -9,7 +9,7 @@ const quicksand_bold = Quicksand({
 });
 
 const quicksand_medium = Quicksand({
-  weight: '500', // Bold weight
+  weight: '500', 
   subsets: ['latin'],
 });
 
@@ -92,7 +92,8 @@ export default function IncubationPage() {
         </h2>
         <div className="w-16 h-1 bg-yellow-500 -ml-40"></div>
       </div>
-      <div className='text-black text-center mb-40'> Testimonial Animation placeholder</div>
+      <div className='text-black text-center mb-40'> Testimonial Animation placeholder</div> 
+      {/* TODO: Add testimonial cards+animation */}
 
     </div>
   );
