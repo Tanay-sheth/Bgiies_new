@@ -4,13 +4,28 @@ import React from 'react';
 import Link from 'next/link';
 import { Lexend } from 'next/font/google';
 import { usePathname } from 'next/navigation';
+import { logout } from '../app/login/actions';
 
 const lexend = Lexend({ subsets: ['latin'] });
 
-function NavLinkItem({ href, text }) {
+function NavLinkItem({ href, text, onClick }) {
   const pathname = usePathname();
   const isActive = pathname === href;
 
+  // If onClick is provided, render as button
+  if (onClick) {
+    return (
+      <button
+        onClick={onClick}
+        className="text-black font-semibold text-md hover:underline underline-offset-4 cursor-pointer"
+        style={{ fontFamily: lexend.style.fontFamily }}
+      >
+        {text}
+      </button>
+    );
+  }
+
+  // Otherwise render as Link
   return (
     <Link href={href} legacyBehavior>
       <a
@@ -24,6 +39,10 @@ function NavLinkItem({ href, text }) {
 }
 
 export default function Navbar() {
+  const handleLogout = async () => {
+    await logout();
+  };
+
   return (
     <nav className="w-full border-b border-gray-200 py-4">
       <div className="max-w-7xl mx-auto flex items-center justify-between px-6">
@@ -46,6 +65,7 @@ export default function Navbar() {
           <NavLinkItem href="/gallery" text="Gallery" />
           <NavLinkItem href="/bgiies" text="BGIIES Till Now" />
           <NavLinkItem href="/sisfs" text="SISFS" />
+          <NavLinkItem text="Log Out" onClick={handleLogout} />
         </div>
       </div>
     </nav>
