@@ -62,6 +62,9 @@ const page = () => {
       </div>
     </div>
     
+    <div className='p-5'>
+      <img src='/bgiiestillnow.png'  className='mb-40 mt-40'/>
+    </div>
     
     </>
   )

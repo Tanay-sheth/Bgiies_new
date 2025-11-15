@@ -1,16 +1,10 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Lexend } from 'next/font/google';
 const lexend = Lexend({ subsets: ['latin'] });
 
-
-
-
 const page = () => {
-
-
-
     return (
         <>
             <div className="relative w-full h-screen overflow-x-hidden">
@@ -38,20 +32,13 @@ const page = () => {
                         lding the next generation of startups
                     </h1>
                     <div className='items-center justify-center flex flex-col'>
-                        <p className=''>
-                            The BITS Goa Innovation Incubation Entrepreneurship Society (BIIES) fosters
-                        </p>
-                        <p className=''>
-                            innovation and entrepreneurship by providing mentorship, funding, and resources
-                        </p>
-                        <p className=''>
-                            to help turn ideas into successful ventures.
-                        </p>
+                        <p>The BITS Goa Innovation Incubation Entrepreneurship Society (BIIES) fosters</p>
+                        <p>innovation and entrepreneurship by providing mentorship, funding, and resources</p>
+                        <p>to help turn ideas into successful ventures.</p>
                     </div>
-
                 </div>
             </div>
-
+            
 
         </>
     )
