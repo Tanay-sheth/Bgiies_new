@@ -1,5 +1,5 @@
 "use client";
-import { Globe, Target, Trophy, Users } from "lucide-react";
+import { Globe, Target, Trophy, Users, User } from "lucide-react";
 
 export default function HomeCard({ icon, title, date }) {
   const IconComponent =
@@ -24,16 +24,25 @@ export default function HomeCard({ icon, title, date }) {
 
       {/* Bottom Blue Section */}
       <div className="bg-[#0C5575] p-4 flex gap-2 items-center">
+
         {/* User icons */}
         <div className="flex -space-x-2">
-          <div className="w-10 h-10 rounded-full bg-gray-200 border-2 border-white" />
-          <div className="w-10 h-10 rounded-full bg-gray-200 border-2 border-white" />
+
+          <div className="w-10 h-10 rounded-full bg-gray-200 border-2 border-white flex items-center justify-center">
+            <User className="w-6 h-6 text-gray-600" />
+          </div>
+
+          <div className="w-10 h-10 rounded-full bg-gray-200 border-2 border-white flex items-center justify-center">
+            <User className="w-6 h-6 text-gray-600" />
+          </div>
+
+          {/* Count */}
           <div className="w-10 h-10 rounded-full bg-gray-200 border-2 border-white flex items-center justify-center text-black text-sm font-semibold">
             +3
           </div>
+
         </div>
       </div>
-
     </div>
   );
 }

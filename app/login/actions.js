@@ -60,7 +60,7 @@ export async function signup(prevState, formData) {
     role: "C", // default
   });
 
-  await createSession({ userId: newUser._id, role: newUser.role });
+  await createSession({ userId: newUser._id, role: newUser.role, email:user.email });
 
   redirect("/");
 }
@@ -84,7 +84,7 @@ export async function login(prevState, formData) {
     return { errors: { email: ["Invalid email or password"] } };
   }
 
-  await createSession({ userId: user._id, role: user.role });
+  await createSession({ userId: user._id, role: user.role, email:user.email });
 
   redirect("/");
 }
