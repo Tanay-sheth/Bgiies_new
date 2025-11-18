@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { decrypt } from "./app/lib/session";
 
 const protectedRoutes = ["/"];
-const publicRoutes = ["/login"];
+const publicRoutes = ["/login", "signup"];
 
 export async function middleware(req) {
   const path = req.nextUrl.pathname;
@@ -30,5 +30,5 @@ export async function middleware(req) {
 }
 
 export const config = {
-  matcher: ["/", "/login"],
+  matcher: ["/", "/login", "/signup"],
 };
