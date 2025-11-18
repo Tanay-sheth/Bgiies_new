@@ -60,7 +60,7 @@ export async function signup(prevState, formData) {
     role: "C", // default
   });
 
-  await createSession({ userId: newUser._id, role: newUser.role, email:user.email });
+  await createSession({ userId: newUser._id, role: newUser.role, email:newUser.email });
 
   redirect("/");
 }

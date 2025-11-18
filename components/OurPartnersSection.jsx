@@ -104,11 +104,11 @@ export default function InvestorsSection() {
     "partners/9.png",
     "partners/10.png",
     "partners/11.png",
-    "partners/12.png",
+    // "partners/12.png",
     "partners/13.png",
     "partners/14.png",
     "partners/15.png",
-    "partners/16.png",
+    // "partners/16.png",
   ];
 
   const loopItems = [...investors, ...investors];
