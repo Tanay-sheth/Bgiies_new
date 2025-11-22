@@ -13,12 +13,13 @@ export default async function Home() {
   const session = await getSession();
   const userEmail = session?.email;
 
-  // 📌 Arrays of members who get access
-  const gbmEmails = ["jeff@gmail.com", "user2@gmail.com", "testuser@bits.com"];
-  const ecmEmails = ["jeff@gmail.com", "ecmhead@bits.com"];
+  const userRole = session?.role;
 
-  const canSeeGBM = gbmEmails.includes(userEmail);
-  const canSeeECM = ecmEmails.includes(userEmail);
+const isGBM = userRole === "gbm";
+const isECM = userRole === "ecm";
+const isAdmin = userRole === "admin";
+const isUser = userRole === "user";  // Normal user
+
 
   return (
     <div className="text-black">
@@ -28,7 +29,7 @@ export default async function Home() {
       <div className="px-10 pb-10 pt-5">
 
         {/* GBM Section */}
-        {(canSeeGBM || canSeeECM) && (
+        {(isGBM || isECM || isAdmin) && (
           <>
             <h2 className="text-2xl font-semibold mt-10 mb-6">General Body Members (GBM)</h2>
 
@@ -41,7 +42,7 @@ export default async function Home() {
         )}
 
         {/* ECM Section */}
-        {canSeeECM && (
+        {(isECM || isAdmin) && (
           <>
             <h2 className="text-2xl font-semibold mt-16 mb-6">
               Executive Committee Members (ECM)

@@ -20,7 +20,7 @@ export function LoginForm() {
         <input
           id="email"
           name="email"
-          placeholder="Username"
+          placeholder="Email"
           className="w-full py-3 px-4 rounded-full bg-white/90 text-gray-700 shadow-lg focus:outline-none"
         />
       </div>
