@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { decrypt } from "./app/lib/session";
 
 const publicRoutes = ["/login", "/signup"];
-const protectedRoutes = ["/"];
+const protectedRoutes = [];
+// const protectedRoutes = ["/"];
 const adminRoutes = ["/admin", "/admin/roles", "/admin/users"];
 
 // ---- MIDDLEWARE ----
