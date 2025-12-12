@@ -60,14 +60,15 @@ const ThreeBackground = ({ currentIndex }) => {
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-    // Create Particles
-    const particleCount = 800;
+    // Reduce particle count on mobile
+    const isMobile = window.innerWidth < 768;
+    const particleCount = isMobile ? 300 : 800;
     const positions = new Float32Array(particleCount * 3);
     const colors = new Float32Array(particleCount * 3);
     const sizes = new Float32Array(particleCount);
 
-    const color1 = new THREE.Color('#06b6d4'); // cyan
-    const color2 = new THREE.Color('#a855f7'); // purple
+    const color1 = new THREE.Color('#06b6d4');
+    const color2 = new THREE.Color('#a855f7');
 
     for (let i = 0; i < particleCount; i++) {
       positions[i * 3] = (Math.random() - 0.5) * 20;
@@ -100,15 +101,17 @@ const ThreeBackground = ({ currentIndex }) => {
     particlesRef.current = particles;
     scene.add(particles);
 
-    // Create Geometric Shapes
+    // Add fewer shapes on mobile
     const shapes = [];
+    const shapeCount = isMobile ? 1 : 3;
     const geometries = [
       new THREE.TorusGeometry(0.5, 0.2, 16, 100),
       new THREE.OctahedronGeometry(0.6),
       new THREE.IcosahedronGeometry(0.5, 0)
     ];
 
-    geometries.forEach((geo, i) => {
+    for (let i = 0; i < shapeCount; i++) {
+      const geo = geometries[i];
       const mat = new THREE.MeshPhongMaterial({
         color: i % 2 === 0 ? '#06b6d4' : '#a855f7',
         wireframe: true,
@@ -123,7 +126,7 @@ const ThreeBackground = ({ currentIndex }) => {
       );
       shapes.push(mesh);
       scene.add(mesh);
-    });
+    }
 
     // Lighting
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
@@ -137,37 +140,42 @@ const ThreeBackground = ({ currentIndex }) => {
     pointLight2.position.set(-3, -3, 3);
     scene.add(pointLight2);
 
-    // Mouse Movement
-    const handleMouseMove = (e) => {
-      mouseRef.current.x = (e.clientX / window.innerWidth) * 2 - 1;
-      mouseRef.current.y = -(e.clientY / window.innerHeight) * 2 + 1;
+    // Mouse/Touch Movement
+    const handleMove = (clientX, clientY) => {
+      mouseRef.current.x = (clientX / window.innerWidth) * 2 - 1;
+      mouseRef.current.y = -(clientY / window.innerHeight) * 2 + 1;
     };
+
+    const handleMouseMove = (e) => handleMove(e.clientX, e.clientY);
+    const handleTouchMove = (e) => {
+      if (e.touches.length > 0) {
+        handleMove(e.touches[0].clientX, e.touches[0].clientY);
+      }
+    };
+
     window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('touchmove', handleTouchMove, { passive: true });
 
     // Animation Loop
     let frameId;
     const animate = () => {
       frameId = requestAnimationFrame(animate);
 
-      // Rotate particles
       if (particlesRef.current) {
         particlesRef.current.rotation.y += 0.0005;
         particlesRef.current.rotation.x += 0.0002;
       }
 
-      // Animate shapes
       shapes.forEach((shape, i) => {
         shape.rotation.x += 0.01;
         shape.rotation.y += 0.01;
         shape.position.y += Math.sin(Date.now() * 0.001 + i) * 0.001;
       });
 
-      // Mouse parallax
       camera.position.x += (mouseRef.current.x * 0.5 - camera.position.x) * 0.05;
       camera.position.y += (mouseRef.current.y * 0.5 - camera.position.y) * 0.05;
       camera.lookAt(scene.position);
 
-      // Color transition based on current index
       const progress = currentIndex / (TEAM_MEMBERS.length - 1);
       const newColor = color1.clone().lerp(color2, progress);
       pointLight1.color = newColor;
@@ -188,6 +196,7 @@ const ThreeBackground = ({ currentIndex }) => {
     return () => {
       cancelAnimationFrame(frameId);
       window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('touchmove', handleTouchMove);
       window.removeEventListener('resize', handleResize);
       geometry.dispose();
       material.dispose();
@@ -209,12 +218,15 @@ export default function TeamPage() {
   const scrollContainerRef = useRef(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
+  const touchStartRef = useRef(null);
 
   useEffect(() => {
     const container = scrollContainerRef.current;
     if (!container) return;
 
     let isScrolling;
+    
+    // Wheel handler for desktop
     const handleWheel = (e) => {
       if (isAnimating) {
         e.preventDefault();
@@ -239,15 +251,48 @@ export default function TeamPage() {
       }, 50);
     };
 
+    // Touch handlers for mobile
+    const handleTouchStart = (e) => {
+      touchStartRef.current = e.touches[0].clientX;
+    };
+
+    const handleTouchEnd = (e) => {
+      if (!touchStartRef.current || isAnimating) return;
+
+      const touchEnd = e.changedTouches[0].clientX;
+      const diff = touchStartRef.current - touchEnd;
+
+      if (Math.abs(diff) > 50) {
+        if (diff > 0 && currentIndex < TEAM_MEMBERS.length - 1) {
+          setIsAnimating(true);
+          setCurrentIndex(prev => prev + 1);
+          setTimeout(() => setIsAnimating(false), 800);
+        } else if (diff < 0 && currentIndex > 0) {
+          setIsAnimating(true);
+          setCurrentIndex(prev => prev - 1);
+          setTimeout(() => setIsAnimating(false), 800);
+        }
+      }
+
+      touchStartRef.current = null;
+    };
+
     container.addEventListener('wheel', handleWheel, { passive: false });
-    return () => container.removeEventListener('wheel', handleWheel);
+    container.addEventListener('touchstart', handleTouchStart, { passive: true });
+    container.addEventListener('touchend', handleTouchEnd, { passive: true });
+    
+    return () => {
+      container.removeEventListener('wheel', handleWheel);
+      container.removeEventListener('touchstart', handleTouchStart);
+      container.removeEventListener('touchend', handleTouchEnd);
+    };
   }, [currentIndex, isAnimating]);
 
   return (
     <div 
       ref={scrollContainerRef}
       className="w-full h-screen bg-[#0a0a0a] relative overflow-hidden"
-      style={{ touchAction: 'none' }}
+      style={{ touchAction: 'pan-y' }}
     >
       {/* Three.js Background */}
       <ThreeBackground currentIndex={currentIndex} />
@@ -259,16 +304,16 @@ export default function TeamPage() {
       </div>
 
       {/* Header UI */}
-      <div className="absolute top-8 left-8 z-50 pointer-events-none">
-        <h1 className="text-5xl md:text-7xl font-black text-white tracking-tighter drop-shadow-2xl">
+      <div className="absolute top-4 md:top-8 left-4 md:left-8 z-50 pointer-events-none">
+        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-black text-white tracking-tighter drop-shadow-2xl">
           OUR TEAM<span className="text-cyan-500">.</span>
         </h1>
-        <div className="h-1 w-24 bg-gradient-to-r from-cyan-500 to-purple-500 mt-3 rounded-full shadow-lg shadow-cyan-500/50"></div>
-        <p className="text-zinc-500 text-sm font-mono mt-4 tracking-wider">MEET THE INNOVATORS</p>
+        <div className="h-1 w-16 md:w-24 bg-gradient-to-r from-cyan-500 to-purple-500 mt-2 md:mt-3 rounded-full shadow-lg shadow-cyan-500/50"></div>
+        <p className="text-zinc-500 text-xs md:text-sm font-mono mt-2 md:mt-4 tracking-wider">MEET THE INNOVATORS</p>
       </div>
 
       {/* Progress Indicator */}
-      <div className="absolute top-1/2 left-8 -translate-y-1/2 z-50 flex flex-col gap-3">
+      <div className="absolute top-1/2 left-4 md:left-8 -translate-y-1/2 z-50 flex flex-col gap-2 md:gap-3">
         {TEAM_MEMBERS.map((_, i) => (
           <button
             key={i}
@@ -279,7 +324,7 @@ export default function TeamPage() {
                 setTimeout(() => setIsAnimating(false), 800);
               }
             }}
-            className={`w-2 h-2 rounded-full transition-all duration-500 ${
+            className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full transition-all duration-500 ${
               i === currentIndex 
                 ? 'bg-cyan-500 scale-150 shadow-lg shadow-cyan-500/50' 
                 : 'bg-zinc-700 hover:bg-zinc-500'
@@ -289,21 +334,21 @@ export default function TeamPage() {
       </div>
 
       {/* Scroll Hint */}
-      <div className="absolute bottom-8 right-8 z-50 flex flex-col items-end gap-2 pointer-events-none">
-        <div className="flex items-center gap-3">
-          <div className="h-px w-12 bg-gradient-to-l from-cyan-500 to-transparent"></div>
-          <span className="text-xs font-mono tracking-widest text-cyan-400 font-bold">SCROLL</span>
-          <svg className="w-4 h-4 text-cyan-400 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <div className="absolute bottom-4 md:bottom-8 right-4 md:right-8 z-50 flex flex-col items-end gap-1 md:gap-2 pointer-events-none">
+        <div className="flex items-center gap-2 md:gap-3">
+          <div className="h-px w-8 md:w-12 bg-gradient-to-l from-cyan-500 to-transparent"></div>
+          <span className="text-[10px] md:text-xs font-mono tracking-widest text-cyan-400 font-bold">SWIPE</span>
+          <svg className="w-3 h-3 md:w-4 md:h-4 text-cyan-400 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
         </div>
-        <span className="text-xs text-zinc-600 font-mono">
+        <span className="text-[10px] md:text-xs text-zinc-600 font-mono">
           {currentIndex + 1} / {TEAM_MEMBERS.length}
         </span>
       </div>
 
       {/* Team Members Container */}
-      <div className="absolute inset-0 flex items-center justify-center">
+      <div className="absolute inset-0 flex items-center justify-center px-4 md:px-0">
         {TEAM_MEMBERS.map((member, i) => (
           <div
             key={i}
@@ -314,76 +359,105 @@ export default function TeamPage() {
               pointerEvents: i === currentIndex ? 'auto' : 'none'
             }}
           >
-            {/* Image */}
-            <div className="absolute left-[10%] w-[350px] h-[480px] rounded-2xl overflow-hidden shadow-2xl shadow-cyan-500/20">
-              <img
-                src={member.img}
-                alt={member.name}
-                className="w-full h-full object-cover transition-all duration-700 hover:scale-110 hover:grayscale-0 grayscale-[30%]"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-              
-              {/* Glowing Border Effect */}
-              <div className="absolute inset-0 border-2 border-transparent hover:border-cyan-500/30 transition-all duration-500 rounded-2xl"></div>
+            {/* Desktop Layout */}
+            <div className="hidden md:flex w-full h-full items-center justify-center">
+              {/* Image */}
+              <div className="absolute left-[10%] w-[350px] h-[480px] rounded-2xl overflow-hidden shadow-2xl shadow-cyan-500/20">
+                <img
+                  src={member.img}
+                  alt={member.name}
+                  className="w-full h-full object-cover transition-all duration-700 hover:scale-110 hover:grayscale-0 grayscale-[30%]"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                <div className="absolute inset-0 border-2 border-transparent hover:border-cyan-500/30 transition-all duration-500 rounded-2xl"></div>
+              </div>
+
+              {/* Info Card */}
+              <div className="absolute right-[8%] w-[460px]">
+                <div className="group relative bg-gradient-to-br from-zinc-900/90 to-zinc-950/90 backdrop-blur-2xl border border-white/10 p-10 rounded-3xl shadow-2xl transform transition-all duration-700 hover:scale-[1.02] hover:border-cyan-500/30 overflow-hidden hover:shadow-cyan-500/20">
+                  <div className="absolute -top-20 -right-20 w-40 h-40 bg-cyan-500/20 rounded-full blur-3xl group-hover:bg-cyan-500/30 transition-all duration-700 animate-pulse"></div>
+                  <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-purple-500/20 rounded-full blur-3xl group-hover:bg-purple-500/30 transition-all duration-700 animate-pulse" style={{ animationDelay: '1s' }}></div>
+
+                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700">
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                  </div>
+
+                  <div className="relative z-10">
+                    <div className="inline-flex items-center gap-2 mb-6">
+                      <span className="text-xs font-mono text-cyan-400 tracking-widest font-bold">0{i + 1}</span>
+                      <div className="h-px w-12 bg-gradient-to-r from-cyan-400 to-transparent"></div>
+                      <span className="text-xs font-mono text-zinc-600 tracking-wider">MEMBER</span>
+                    </div>
+                    
+                    <h2 className="text-4xl font-black text-white mb-2 tracking-tight leading-tight">{member.name}</h2>
+                    <h3 className="text-sm font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-400 mb-8 uppercase tracking-widest">{member.role}</h3>
+                    
+                    <div className="relative mb-8 pl-5">
+                      <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-gradient-to-b from-cyan-500/50 via-purple-500/50 to-transparent"></div>
+                      <p className="text-zinc-300 text-base leading-relaxed">{member.bio}</p>
+                    </div>
+
+                    <div className="flex gap-4 items-center pt-6 border-t border-white/10">
+                      <a href={member.socials.github} className="text-zinc-400 hover:text-white hover:scale-125 transition-all duration-300 hover:rotate-12">
+                        <Github size={22} strokeWidth={1.5} />
+                      </a>
+                      <a href={member.socials.linkedin} className="text-zinc-400 hover:text-blue-400 hover:scale-125 transition-all duration-300 hover:rotate-12">
+                        <Linkedin size={22} strokeWidth={1.5} />
+                      </a>
+                      <div className="flex-grow"></div>
+                      <button className="flex items-center gap-2 text-xs font-bold text-white bg-gradient-to-r from-cyan-500/20 to-purple-500/20 hover:from-cyan-500 hover:to-purple-500 px-5 py-2.5 rounded-full border border-white/20 hover:border-white/40 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/50 group/btn">
+                        <span>VIEW RESUME</span>
+                        <ExternalLink size={14} className="group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            {/* Info Card */}
-            <div className="absolute right-[8%] w-[460px]">
-              <div className="group relative bg-gradient-to-br from-zinc-900/90 to-zinc-950/90 backdrop-blur-2xl border border-white/10 p-10 rounded-3xl shadow-2xl transform transition-all duration-700 hover:scale-[1.02] hover:border-cyan-500/30 overflow-hidden hover:shadow-cyan-500/20">
-                {/* Animated Background Gradients */}
-                <div className="absolute -top-20 -right-20 w-40 h-40 bg-cyan-500/20 rounded-full blur-3xl group-hover:bg-cyan-500/30 transition-all duration-700 animate-pulse"></div>
-                <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-purple-500/20 rounded-full blur-3xl group-hover:bg-purple-500/30 transition-all duration-700 animate-pulse" style={{ animationDelay: '1s' }}></div>
+            {/* Mobile Layout */}
+            <div className="flex md:hidden flex-col items-center justify-center w-full h-full py-20 px-4">
+              {/* Image */}
+              <div className="w-full max-w-[280px] h-[360px] rounded-2xl overflow-hidden shadow-2xl shadow-cyan-500/20 mb-6">
+                <img
+                  src={member.img}
+                  alt={member.name}
+                  className="w-full h-full object-cover grayscale-[30%]"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+              </div>
 
-                {/* Shine Effect */}
-                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700">
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-                </div>
+              {/* Info Card */}
+              <div className="w-full max-w-[400px] bg-gradient-to-br from-zinc-900/90 to-zinc-950/90 backdrop-blur-2xl border border-white/10 p-6 rounded-2xl shadow-2xl overflow-hidden">
+                <div className="absolute -top-20 -right-20 w-40 h-40 bg-cyan-500/20 rounded-full blur-3xl animate-pulse"></div>
+                <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-purple-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
 
                 <div className="relative z-10">
-                  {/* Member Number Badge */}
-                  <div className="inline-flex items-center gap-2 mb-6">
-                    <span className="text-xs font-mono text-cyan-400 tracking-widest font-bold">
-                      0{i + 1}
-                    </span>
-                    <div className="h-px w-12 bg-gradient-to-r from-cyan-400 to-transparent"></div>
-                    <span className="text-xs font-mono text-zinc-600 tracking-wider">
-                      MEMBER
-                    </span>
+                  <div className="inline-flex items-center gap-2 mb-4">
+                    <span className="text-xs font-mono text-cyan-400 tracking-widest font-bold">0{i + 1}</span>
+                    <div className="h-px w-8 bg-gradient-to-r from-cyan-400 to-transparent"></div>
+                    <span className="text-xs font-mono text-zinc-600 tracking-wider">MEMBER</span>
                   </div>
                   
-                  <h2 className="text-4xl font-black text-white mb-2 tracking-tight leading-tight">
-                    {member.name}
-                  </h2>
+                  <h2 className="text-2xl font-black text-white mb-1 tracking-tight leading-tight">{member.name}</h2>
+                  <h3 className="text-xs font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-400 mb-4 uppercase tracking-widest">{member.role}</h3>
                   
-                  <h3 className="text-sm font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-400 mb-8 uppercase tracking-widest">
-                    {member.role}
-                  </h3>
-                  
-                  <div className="relative mb-8 pl-5">
+                  <div className="relative mb-6 pl-4">
                     <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-gradient-to-b from-cyan-500/50 via-purple-500/50 to-transparent"></div>
-                    <p className="text-zinc-300 text-base leading-relaxed">
-                      {member.bio}
-                    </p>
+                    <p className="text-zinc-300 text-sm leading-relaxed">{member.bio}</p>
                   </div>
 
-                  {/* Social Icons */}
-                  <div className="flex gap-4 items-center pt-6 border-t border-white/10">
-                    <a 
-                      href={member.socials.github} 
-                      className="text-zinc-400 hover:text-white hover:scale-125 transition-all duration-300 hover:rotate-12"
-                    >
-                      <Github size={22} strokeWidth={1.5} />
+                  <div className="flex gap-3 items-center pt-4 border-t border-white/10">
+                    <a href={member.socials.github} className="text-zinc-400 hover:text-white transition-all duration-300">
+                      <Github size={20} strokeWidth={1.5} />
                     </a>
-                    <a 
-                      href={member.socials.linkedin} 
-                      className="text-zinc-400 hover:text-blue-400 hover:scale-125 transition-all duration-300 hover:rotate-12"
-                    >
-                      <Linkedin size={22} strokeWidth={1.5} />
+                    <a href={member.socials.linkedin} className="text-zinc-400 hover:text-blue-400 transition-all duration-300">
+                      <Linkedin size={20} strokeWidth={1.5} />
                     </a>
                     <div className="flex-grow"></div>
-                    <button className="flex items-center gap-2 text-xs font-bold text-white bg-gradient-to-r from-cyan-500/20 to-purple-500/20 hover:from-cyan-500 hover:to-purple-500 px-5 py-2.5 rounded-full border border-white/20 hover:border-white/40 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/50 group/btn">
-                      <span>VIEW RESUME</span>
-                      <ExternalLink size={14} className="group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform" />
+                    <button className="flex items-center gap-2 text-[10px] font-bold text-white bg-gradient-to-r from-cyan-500/20 to-purple-500/20 px-4 py-2 rounded-full border border-white/20 transition-all duration-300">
+                      <span>RESUME</span>
+                      <ExternalLink size={12} />
                     </button>
                   </div>
                 </div>
